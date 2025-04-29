@@ -45,6 +45,8 @@ void *linhaValida(void* parametros){
 
     // agora todos os elementos no vetor sao 1s, logo essa linha eh valida
     results[ inicio_linhas + parameters->row ] = 1;
+    
+    free(parameters);
     pthread_exit(NULL); // fim do processo
 }
 
@@ -71,6 +73,8 @@ void *colunaValida(void* parametros){
     
     // agora todos os elementos no vetor sao 1s, logo essa coluna eh valida
     results[inicio_colunas + parameters->column] = 1;
+
+    free(parameters);
     pthread_exit(NULL); // fim do processo
 }
 
@@ -121,5 +125,7 @@ void *quadranteValido(void* parametros){
     }
     // agora todos os elementos no vetor sao 1s, logo esse quadrante eh valida
     results[parameters->row + (parameters->column)/3] = 1;
+
+    free(parameters);
     pthread_exit(NULL); // fim do processo
 }

@@ -3,73 +3,98 @@
 #include <pthread.h>
 #include <string.h>
 #include "sudoku-validation.c"
-#include "readSudoku.c"
+#include "read-sudoku.c"
 
-// se desse para receber o "tabuleiro" pelos parametros da main seria show
-int main(){
+void retornaNomeCompleto(char* destino) {
     char nomeArquivo[100];
     printf("Digite o nome do arquivo com a instância do Sudoku: ");
     scanf("%s", nomeArquivo);
-    char nomeCompleto[120] = "Solutions/";
-    strcat(nomeCompleto, nomeArquivo);
-    int** sudoku = carregarSudoku(nomeCompleto);
+    strcpy(destino, "Solutions/");
+    strcat(destino, nomeArquivo);
+}
 
-    pthread_t threads[NUM_THREADS];
+void createThreadsLinhas(pthread_t* threads, int* threadIdx, bool threadUnicaLinha, int** sudoku){
 
-    int threadIdx = 0;
+    if(threadUnicaLinha == 0){
+        for(int i = 0; i < SIZE; i++){
+            params* pontoValido = (params*)malloc(sizeof(params)); // Deve ser alocado um pontoValido para cada thread para evitar condições de corrida e caso
+            pontoValido->row = i;                                  // ele fosse compartilhado o paralelismo da utilização das threads seria desperdiçado, então
+            pontoValido->column = 0;                               // no final das contas acontece um trade-off entre tempo de execução e uso de memória
+            pontoValido->sudoku = sudoku;                          // Nesse caso, cada thread tem um pontoValido em diferentes espaços de memória
 
-    // agora vamos escolher os pontos usandos
-    /*
-        x x x x x x x x x 
-        x o o o o o o o o 
-        x o o o o o o o o 
-        x o o x o o x o o 
-        x o o o o o o o o 
-        x o o o o o o o o 
-        x o o x o o x o o 
-        x o o o o o o o o 
-        x o o o o o o o o 
-    */
-    for(int i = 0; i < SIZE; i++){
-        for(int j = 0; j < SIZE; j++){
-            // primeiros vamos pegar os pontos dos quadrantes e endereca-los as threads
-            if(!(i%3) && !(j%3)){
-                params *pontoValido = (params *)malloc(sizeof(params));
+            pthread_create(&threads[*threadIdx], NULL, linhaValida, pontoValido);
+            (*threadIdx)++;
+        }
+    }else{
+        params *pontoValido = (params *)malloc(sizeof(params));
+        pontoValido->sudoku = sudoku;
+    }
+}
+
+void createThreadsColunas(pthread_t* threads, int* threadIdx, bool threadUnicaColuna, int** sudoku){
+
+    if(threadUnicaColuna == 0){
+        for(int i = 0; i < SIZE; i++){
+            params* pontoValido = (params*)malloc(sizeof(params));
+            pontoValido->row = 0;
+            pontoValido->column = i;
+            pontoValido->sudoku = (int**)sudoku;
+
+            pthread_create(&threads[*threadIdx], NULL, colunaValida, pontoValido);
+            (*threadIdx)++;
+        }
+    }else{
+        params *pontoValido = (params *)malloc(sizeof(params));
+        pontoValido->sudoku = sudoku;
+    }
+}
+
+void createThreadsQuadrantes(pthread_t* threads, int* threadIdx, bool threadUnicaQuadrante, int** sudoku){
+
+    if(threadUnicaQuadrante == 0){
+        for(int i = 0; i < SIZE; i+=3){
+            for(int j = 0; j < SIZE; j+=3){
+                params* pontoValido = (params*)malloc(sizeof(params));
                 pontoValido->row = i;
                 pontoValido->column = j;
-                pontoValido->sudoku = sudoku;
-                pthread_create(&threads[threadIdx++], NULL, quadranteValido, pontoValido);
-            }
+                pontoValido->sudoku = (int**)sudoku;
 
-            // depois veremos todas as linhas que sao validas
-            if(!j){
-                params *pontoValido = (params *)malloc(sizeof(params));
-                pontoValido->row = i;
-                pontoValido->column = j;
-                pontoValido->sudoku = sudoku;
-                pthread_create(&threads[threadIdx++], NULL, linhaValida, pontoValido);
-            }
-
-            // por fim veremos todas as colunas que sao validas
-            if(!i){
-                params *pontoValido = (params *)malloc(sizeof(params));
-                pontoValido->row = i;
-                pontoValido->column = j;
-                pontoValido->sudoku = sudoku;
-                pthread_create(&threads[threadIdx++], NULL, colunaValida, pontoValido);
+                pthread_create(&threads[*threadIdx], NULL, quadranteValido, pontoValido);
+                (*threadIdx)++;
             }
         }
+    }else{
+        params *pontoValido = (params *)malloc(sizeof(params));
+        pontoValido->sudoku = sudoku;
+    }
+}
+
+
+int main(){
+    char nomeCompleto[120];
+    retornaNomeCompleto(nomeCompleto);
+    int** sudoku = carregarSudoku(nomeCompleto);
+
+    int numThreads = 3;
+    bool threadUnicaLinha = 0, threadUnicaColuna = 0, threadUnicaQuadrante = 0;
+    if(!threadUnicaLinha){
+        numThreads += 8;
+    } if(threadUnicaColuna){
+        numThreads += 8;
+    } if(threadUnicaQuadrante){
+        numThreads += 8;
     }
 
-    // agora que todas as threads estao alocadas no vetor vamos junta-las todas
-    // num unico processo e executá-las (vao sendo executas a medida que vao sendo
-    // juntadas num processo)
+    pthread_t threads[NUM_THREADS];
+    int threadIdx = 0;
+
+    createThreadsLinhas(threads, &threadIdx, threadUnicaLinha, sudoku);
+    createThreadsColunas(threads, &threadIdx, threadUnicaColuna, sudoku);
+    createThreadsQuadrantes(threads, &threadIdx, threadUnicaQuadrante, sudoku);
+
     for(int i = 0; i < NUM_THREADS; i++)
         pthread_join(threads[i], NULL);
 
-    
-    // Processamento terminado, agora vamos verificar o vetor de results se as linhas,
-    // colunas e quadrantes sao validos
     for(int i = 0; i < NUM_THREADS; i++){
         if(!results[i]){
             printf("Essa configuracao do tabuleiro eh invalida!\n");
@@ -80,3 +105,17 @@ int main(){
     printf("Essa configuracao do tabuleiro eh valida!\n");
     return 0;
 }
+
+    //while para testar todas as possibilidades:
+    /*
+            linha   coluna  quadrante   threadUnicaLinha   threadUnicaColuna    threadUnicaQuadrante    total de threads
+              0        0        0               -                  -                     -                     0
+              1        1        1               1                  1                     1                     3
+              1        1        9               1                  1                     0                     11
+              1        9        1               1                  0                     1                     11   
+              9        1        1               0                  1                     1                     11
+              1        9        9               1                  0                     0                     19   
+              9        1        9               0                  1                     0                     19
+              9        9        1               0                  0                     1                     19    
+              9        9        9               0                  0                     0                     27 
+    */

@@ -1,13 +1,13 @@
 To do list:
 
-- Refatorar um pouco pra modularizar melhor o código
+- Refatorar um pouco pra modularizar melhor o código ✅
 
 - Fazer todas as possibilidades: linhas, colunas e quadrantes com 1 ou 9 threads ou tudo sequencial (9 possibilidades). Seria entrada do usuário ou um programa 
 que gere a tabela de tudo já?
 
-- Mudar a passagem de parâmetro. Provavelmente um arquivo recebido como parâmetro na main ou na própria execução do programa
+- Mudar a passagem de parâmetro. Provavelmente um arquivo recebido como parâmetro na main ou na própria execução do programa ✅
 
-- Pasta com vários tabuleiros de sudoku
+- Pasta com vários tabuleiros de sudoku ✅
 
 - Talvez implementar alguma forma de sincronização
 
