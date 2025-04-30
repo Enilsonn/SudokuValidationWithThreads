@@ -29,6 +29,7 @@ typedef struct {
     int row;
     int column;
     int **sudoku;
+    bool unique;
 } params;
 
 void* linhaValida(void* parametros);

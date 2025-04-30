@@ -17,66 +17,6 @@
     que sera armazenado em um vetor de inteiros. No final, o programa ira
     verificar se todas as threads retornaram 1. Se sim, o jogo esta correto
 */
-int results[NUM_THREADS] = {0}; // Vetor para armazenar os resultados das threads
-
-// todas as funcoes serao ponteiros por causa da bibliioteca pthread
-// assim como todos os parametros sao declarados como void
-
-// primeiro vamos analizar se a linha eh valida
-void *linhaValida(void* parametros){
-    params *parameters = (params *)parametros;
-    if(parameters->column != 0 || parameters->row > 8){ // não precisa de parameteres->column != 0
-        // simplismente encerra a thread pois o parametro nao eh valido
-        pthread_exit(NULL);
-    }
-    // agora vamos checar se cada numero aparece apenas uma vez nessa linha
-    int apareceApenasUmaVezNaLinha[SIZE] = {0};
-    for(int i = 0; i < SIZE; i++){
-        int numeroEmVerificacao = parameters->sudoku[parameters->row][i];
-
-        if(numeroEmVerificacao < 1 || numeroEmVerificacao > 9 ||
-        apareceApenasUmaVezNaLinha[numeroEmVerificacao - 1] == 1 ){
-            // ou eh um numero invalido ou ja apareceu
-            pthread_exit(NULL);
-        }else{
-            apareceApenasUmaVezNaLinha[numeroEmVerificacao - 1] = 1;
-        }
-    }
-
-    // agora todos os elementos no vetor sao 1s, logo essa linha eh valida
-    results[ inicio_linhas + parameters->row ] = 1;
-    
-    free(parameters);
-    pthread_exit(NULL); // fim do processo
-}
-
-// agora vamos analizar se cada linha eh valida
-void *colunaValida(void* parametros){
-    params *parameters = (params *)parametros;
-    if(parameters->row != 0 || parameters->column > 8){
-        // simplismente encerra a thread pois o parametro nao eh valido
-        pthread_exit(NULL);
-    }
-    // agora vamos checar se cada numero aparece apenas uma vez nessa coluna
-    int apareceApenasUmaVezNaColuna[SIZE] = {0};
-
-    for(int i = 0; i < SIZE; i++){
-        int numeroEmVerificacao = parameters->sudoku[i][parameters->column];
-        if(numeroEmVerificacao < 1 || numeroEmVerificacao > 9 ||
-        apareceApenasUmaVezNaColuna[numeroEmVerificacao - 1] == 1){
-            // ou eh um numero invalido ou ja apareceu
-            pthread_exit(NULL);
-        } else{
-            apareceApenasUmaVezNaColuna[numeroEmVerificacao - 1] = 1;
-        }
-    }
-    
-    // agora todos os elementos no vetor sao 1s, logo essa coluna eh valida
-    results[inicio_colunas + parameters->column] = 1;
-
-    free(parameters);
-    pthread_exit(NULL); // fim do processo
-}
 
 // e por fim, veremos se o quadrante eh valido
 /*
@@ -102,30 +42,122 @@ void *colunaValida(void* parametros){
         (6, 6) -> 6 + 6/3 = 8
 */ 
 
-void *quadranteValido(void* parametros){
+int results[NUM_THREADS] = {0}; // Vetor para armazenar os resultados das threads
+
+void *linhaValida(void* parametros){
+    
     params *parameters = (params *)parametros;
-    if(parameters->row > 6 || parameters->column > 6 ||
-    parameters->row%3 != 0 || parameters->column%3 != 0){
-        // simplesmente encerra a thread pois o parametro nao eh valido
-        pthread_exit(NULL);
+
+    int numeroExecucoes; // se for uma thread so, executo 9x, caso sejam varias, executa 1 vez so
+    if(parameters->unique == 1 ){
+        numeroExecucoes = 9;
+    }else{
+        numeroExecucoes = 1;
     }
-    // agora vamos checar se cada numero aparece apenas uma vez nesse quadrante
-    int apareceApenasUmaVezNoQuadrante[SIZE] = {0};
-    for(int i = parameters->row; i < parameters->row + 3; i++){
-        for(int j = parameters->column; j < parameters->column + 3; j++){
-            int numeroEmVerificacao = parameters->sudoku[i][j];
-            if(numeroEmVerificacao < 1 || numeroEmVerificacao > 9 ||
-            apareceApenasUmaVezNoQuadrante[numeroEmVerificacao - 1] == 1){
-                // ou eh um numero invalido ou ja apareceu
+
+    for(int ex = 0; ex < numeroExecucoes; ex++){
+        if(parameters->column != 0 || parameters->row > 8){ 
+            pthread_exit(NULL);
+        }
+        
+        int apareceApenasUmaVezNaLinha[SIZE] = {0};
+
+        if(parameters->unique) parameters->row = ex;
+
+        for(int j = 0; j < SIZE; j++){
+
+
+            int numeroEmVerificacao = parameters->sudoku[parameters->row][j];
+
+            if(numeroEmVerificacao < 1 || numeroEmVerificacao > 9 || apareceApenasUmaVezNaLinha[numeroEmVerificacao - 1] == 1 ){
                 pthread_exit(NULL);
+
             }else{
-                apareceApenasUmaVezNoQuadrante[numeroEmVerificacao - 1] = 1;
+                apareceApenasUmaVezNaLinha[numeroEmVerificacao - 1] = 1;
             }
         }
-    }
-    // agora todos os elementos no vetor sao 1s, logo esse quadrante eh valida
-    results[parameters->row + (parameters->column)/3] = 1;
 
-    free(parameters);
+        results[ inicio_linhas + parameters->row ] = 1;
+        
+        //free(parameters);
+    }
+
+    pthread_exit(NULL); // fim do processo
+}
+
+void *colunaValida(void* parametros){
+
+    params *parameters = (params *)parametros;
+    
+    int numeroExecucoes = parameters->unique == 1 ? 9:1; // se for uma thread so, executo 9x, caso sejam varias, executa 1 vez so
+
+    for(int ex = 0; ex < numeroExecucoes; ex++){
+        if(parameters->row != 0 || parameters->column > 8){
+            pthread_exit(NULL);
+        }
+
+        int apareceApenasUmaVezNaColuna[SIZE] = {0};
+
+        if(parameters->unique) parameters->column = ex;
+
+        for(int i = 0; i < SIZE; i++){
+
+            int numeroEmVerificacao = parameters->sudoku[i][parameters->column];
+
+            if(numeroEmVerificacao < 1 || numeroEmVerificacao > 9 || apareceApenasUmaVezNaColuna[numeroEmVerificacao - 1] == 1){
+                pthread_exit(NULL);
+                
+            } else{
+                apareceApenasUmaVezNaColuna[numeroEmVerificacao - 1] = 1;
+            }
+        }
+        
+        results[inicio_colunas + parameters->column] = 1;
+
+        //free(parameters);
+    }
+
+    pthread_exit(NULL); // fim do processo
+}
+
+void *quadranteValido(void* parametros){
+
+    params *parameters = (params *)parametros;
+
+    int numeroExecucoes = parameters->unique == 1 ? 9:1; // se for uma thread so, executo 9x, caso sejam varias, executa 1 vez so
+
+    for(int exi = 0; exi < numeroExecucoes; exi+=3){
+        for(int exj = 0; exj < numeroExecucoes; exj+=3){
+            if(parameters->row > 6 || parameters->column > 6 || parameters->row%3 != 0 || parameters->column%3 != 0){
+                pthread_exit(NULL);
+            }
+            
+            int apareceApenasUmaVezNoQuadrante[SIZE] = {0};
+            if(parameters->unique){
+                parameters->row = exi;
+                parameters->column = exj;
+            }
+            
+            for(int i = parameters->row; i < parameters->row + 3; i++){
+                for(int j = parameters->column; j < parameters->column + 3; j++){
+
+                    int numeroEmVerificacao = parameters->sudoku[i][j];
+
+                    if(numeroEmVerificacao < 1 || numeroEmVerificacao > 9 || apareceApenasUmaVezNoQuadrante[numeroEmVerificacao - 1] == 1){
+                        pthread_exit(NULL);
+
+                    }else{
+                        apareceApenasUmaVezNoQuadrante[numeroEmVerificacao - 1] = 1;
+                    }
+                }
+            }
+            
+            results[parameters->row + (parameters->column)/3] = 1;
+
+            //free(parameters);
+        
+        }
+    }
+
     pthread_exit(NULL); // fim do processo
 }
