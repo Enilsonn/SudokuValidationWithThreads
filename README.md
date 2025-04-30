@@ -20,7 +20,7 @@ Ao final da execução, é exibida uma **tabela no terminal** indicando:
 
 ---
 
-## 🛠️ Como compilar e executar
+## 🛠️ Estrutura do projeto
 
 O projeto é feito em **C puro** com **bibliotecas padrão**, e está estruturado em múltiplos arquivos:
 
@@ -41,7 +41,7 @@ No terminal, estando dentro da pasta do projeto, execute:
 gcc main.c -o sudoku -lpthread
 ```
 
-> ⚠️ Atenção: O uso da flag `-lpthread` é essencial para compilar com suporte a threads.
+> ⚠️ Atenção: O uso da flag `-lpthread` é recomendado para compilar com suporte a threads.
 
 ### Execute o projeto:
 
@@ -82,14 +82,14 @@ Linhas  | Colunas  | Quadrantes
 Exemplo de saída no terminal:
 
 ```
-+-----+----------------+------------------+------------------------+---------------------+
-| Nº  | Unica Linha    | Unica Coluna     | Unico Quadrante        | Tempo (segundos)    |
-+-----+----------------+------------------+------------------------+---------------------+
-|  0  | Nao            | Nao              | Nao                    |       0.000123      |
-|  1  | Nao            | Nao              | Sim                    |       0.000153      |
++-----+---------------------+------------------+------------------------+---------------------+
+| Nº  | Unica Linha         | Unica Coluna     | Unico Quadrante        | Tempo (segundos)    |
++-----+---------------------+------------------+------------------------+---------------------+
+|  0  | Nao                 | Nao              | Nao                    |       0.000123      |
+|  1  | Nao                 | Nao              | Sim                    |       0.000153      |
 ...
-|  8  | Execução Sequencial                                        |       0.000097      |
-+-----+----------------+------------------+------------------------+---------------------+
+|  8  | Execução Sequencial | Sequencial       | Sequencial             |       0.000097      |
++-----+---------------------+------------------+------------------------+---------------------+
 ```
 
 ---

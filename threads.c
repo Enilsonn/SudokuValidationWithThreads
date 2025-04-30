@@ -96,7 +96,7 @@ void verificaSequencialComErros(int** sudoku) { //execução sequencial da verif
     for (int bloco_i = 0; bloco_i < SIZE; bloco_i += 3) {
         for (int bloco_j = 0; bloco_j < SIZE; bloco_j += 3) {
             int aparece[SIZE] = {0};
-            //int posicoes[SIZE][2]; //guarda posições duplicadas
+            //guarda posições duplicadas
             int dup = 0;
 
             for (int i = 0; i < 3; i++) {
@@ -158,12 +158,7 @@ void *linhaValida(void* parametros){ //função para verificar as linhas
     
     params *parameters = (params *)parametros;
 
-    int numeroExecucoes; //se for uma thread so, executa 9x, caso sejam 9 threads, executa 1 vez so
-    if(parameters->unique == 1 ){
-        numeroExecucoes = 9;
-    }else{
-        numeroExecucoes = 1;
-    }
+    int numeroExecucoes = parameters->unique == 1 ? 9:1; //se for uma thread so, executa 9x, caso sejam 9 threads, executa 1 vez so
 
     for(int ex = 0; ex < numeroExecucoes; ex++){
         if(parameters->column != 0 || parameters->row > 8){ //verifica se os parametros estão validos
@@ -175,7 +170,6 @@ void *linhaValida(void* parametros){ //função para verificar as linhas
         if(parameters->unique) parameters->row = ex;  //se for uma thread unica, a linha segue o numero da execução
 
         for(int j = 0; j < SIZE; j++){ //itera por cada linha
-
 
             int numeroEmVerificacao = parameters->sudoku[parameters->row][j];
 
