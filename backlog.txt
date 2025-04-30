@@ -2,26 +2,24 @@ To do list:
 
 - Refatorar um pouco pra modularizar melhor o código ✅
 
-- Fazer todas as possibilidades: linhas, colunas e quadrantes com 1 ou 9 threads ou tudo sequencial (9 possibilidades). Seria entrada do usuário ou um programa 
-que gere a tabela de tudo já?
+- Fazer todas as possibilidades: linhas, colunas e quadrantes com 1 ou 9 threads ou tudo sequencial (9 possibilidades). ✅
 
 - Mudar a passagem de parâmetro. Provavelmente um arquivo recebido como parâmetro na main ou na própria execução do programa ✅
 
 - Pasta com vários tabuleiros de sudoku ✅
 
-- Talvez implementar alguma forma de sincronização
+- Fazer o README ✅
 
-- Fazer o README
+- Mostrar onde occoreu o erro no sudoku ✅
 
-- Mostrar onde occoreu o erro no sudoku
+- Implementar alguma forma de interface ✅
 
-- Converter pra C++
+- Revisar otimizações de memória
 
-- Implementar alguma forma de interface
+- Revisar modularização (utils.c com funções de print e leitura, createThreads.c com criação de threads) e utilização de macros
 
-- Talvez implementar o próprio sudoku para que a solução do usuário seja validada ao final ou durante a execução (mais uma thread para rodar o jogo?)
-
-Bônus de acordo com o professor:
+Bônus:
+- Implementar um leitor de várias instâncias diferentes de um tabuleiro simultaneamente
 
 - Utilizar Docker e Github Actions
 

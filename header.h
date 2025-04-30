@@ -1,12 +1,12 @@
 // sudoku_checker.h
 
-#ifndef SUDOKU_VALIDATION_H
-#define SUDOKU_VALIDATION_H
+#ifndef HEADER_H
+#define HEADER_H
 
 #include <stdbool.h>
 
 #define SIZE 9 // tamanho do tabuleiro
-#define NUM_THREADS 27 // Total de threads (9 linhas + 9 colunas + 9 quadrantes)
+#define NUM_RES 27 // Total de threads (9 linhas + 9 colunas + 9 quadrantes)
 /*
     [0 - 8] serao os qudrantes
     [9 - 17] serao as linha
@@ -17,7 +17,7 @@
 #define inicio_colunas 18
 
 extern int sudoku[SIZE][SIZE];
-extern int results[NUM_THREADS]; // Vetor para armazenar os resultados das threads
+extern int results[NUM_RES]; // Vetor para armazenar os resultados das threads
 
 
 /*
