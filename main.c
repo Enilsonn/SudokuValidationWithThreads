@@ -14,6 +14,36 @@ void retornaNomeCompleto(char* destino) {
     strcat(destino, nomeArquivo);
 }
 
+void imprimirTabelaTempos(double* tempos) {
+    printf("\n");
+    printf("+-----+----------------+------------------+------------------------+---------------------+\n");
+    printf("| Nº  | Unica Linha    | Unica Coluna     | Unico Quadrante        | Tempo (segundos)    |\n");
+    printf("+-----+----------------+------------------+------------------------+---------------------+\n");
+
+    for (int i = 0; i < 9; i++) {
+        if (i == 8) {
+            printf("| %3d | %-14s | %-16s | %-22s | %-19.6f |\n",
+                i,
+                "Sequencial", "Sequencial", "Sequencial",
+                tempos[i]);
+        } else {
+            int unicaLinha = (i >> 2) & 1;
+            int unicaColuna = (i >> 1) & 1;
+            int unicoQuadrante = i & 1;
+
+            printf("| %3d | %-14s | %-16s | %-22s | %-19.6f |\n",
+                i,
+                unicaLinha ? "Sim" : "Nao",
+                unicaColuna ? "Sim" : "Nao",
+                unicoQuadrante ? "Sim" : "Nao",
+                tempos[i]);
+        }
+    }
+
+    printf("+-----+----------------+------------------+------------------------+---------------------+\n");
+}
+
+
 void createThreadsLinhas(pthread_t* threads, int* threadIdx, bool threadUnicaLinha, int** sudoku){
 
     if(threadUnicaLinha == 0){
@@ -59,9 +89,8 @@ void createThreadsColunas(pthread_t* threads, int* threadIdx, bool threadUnicaCo
         pontoValido->sudoku = sudoku;
         pontoValido->unique = threadUnicaColuna;
         pthread_create(&threads[*threadIdx], NULL, colunaValida, pontoValido);
-        (*threadIdx)++;
-        
-}
+        (*threadIdx)++;    
+    }
 }
 
 void createThreadsQuadrantes(pthread_t* threads, int* threadIdx, bool threadUnicaQuadrante, int** sudoku){
@@ -98,7 +127,8 @@ int main(){
     int** sudoku = carregarSudoku(nomeCompleto);
     clock_t inicio, fim;
     double tempoDaExecucao;
-    double tempos[8];
+    double tempos[9];
+
 
     for(int ex = 0; ex < 8; ex++){
         // Pegando os 3 primeiros bits de 0(000) a 7(111), é possível gerar todas as combinações de variáveis
@@ -106,7 +136,7 @@ int main(){
         bool threadUnicaColuna = (ex >> 1) & 1;
         bool threadUnicaQuadrante = ex & 1;
 
-        printf("quantidades de threads para:\nLinhas: %d\nColunas: %d\nQuadradrantes: %d\n\n", threadUnicaLinha, threadUnicaColuna, threadUnicaQuadrante);
+        // printf("\nQuantidades de threads para:\nQuadrante: %d\nLinhas: %d\nColunas: %d", threadUnicaQuadrante, threadUnicaLinha, threadUnicaColuna);
         
         int numThreads = 3;
         if(!threadUnicaLinha){
@@ -120,6 +150,8 @@ int main(){
         pthread_t threads[numThreads];
         int threadIdx = 0;
 
+        inicio = clock();
+
         createThreadsLinhas(threads, &threadIdx, threadUnicaLinha, sudoku);
         createThreadsColunas(threads, &threadIdx, threadUnicaColuna, sudoku);
         createThreadsQuadrantes(threads, &threadIdx, threadUnicaQuadrante, sudoku);
@@ -127,30 +159,45 @@ int main(){
         for(int i = 0; i < numThreads; i++){
             pthread_join(threads[i], NULL);
         }
-        printf("\n");
+
+        fim = clock();
+        tempoDaExecucao = ((double)(fim-inicio)) / CLOCKS_PER_SEC;
+        tempos[ex] = tempoDaExecucao;
+
+        printf("\nExecucao %d: ", ex+1);
 
         int flag = 1;
         for(int i = 0; i < NUM_THREADS; i++){
             if(!results[i]){
                 printf("Essa configuracao do tabuleiro eh invalida!\n");
                 flag = 0;
-                printf("Problema em: %d\n", i);
+                // printf("Problema em: %d\n", i);
                 break; // para mostrar a coluna, esse return poderia ser tirado e mostrar o segundo 0 na lista de resultados
             }
         }
         
         if(flag) printf("Essa configuracao do tabuleiro eh valida!\n");
 
-        printf("results = [ ");
-        for(int a = 0; a < NUM_THREADS; a++){
-            printf("%d", results[a]);
-            if(a != NUM_THREADS-1) printf(", ");
-        }
-        printf("]\n");
+        // printf("results = [ Q:");
+        // for(int a = 0; a < NUM_THREADS; a++){
+        //     if(a == 9) printf("| L:");
+        //     if(a == 18) printf("| C: ");
+        //     printf("%d", results[a]);
+        //     if(a != NUM_THREADS-1 || (a == 9 || a == 18)) printf(", ");
+        // }
+        // printf("]\n");
 
         memset(results, 0, sizeof(results));
     }
+    
+    inicio = clock();
+    verificaSequencialComErros(sudoku);
+    fim = clock();
+    tempoDaExecucao = ((double)(fim-inicio)) / CLOCKS_PER_SEC;
+    tempos[8] = tempoDaExecucao;
 
+
+    imprimirTabelaTempos(tempos);
 
     return 0;
 }

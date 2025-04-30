@@ -44,6 +44,116 @@
 
 int results[NUM_THREADS] = {0}; // Vetor para armazenar os resultados das threads
 
+#include <stdio.h>
+
+#define SIZE 9
+
+void verificaSequencialComErros(int** sudoku) {
+    int erro = 0;
+    int erros[SIZE][SIZE] = {0}; // marca 1 onde houver erro
+
+    // Verifica linhas
+    for (int i = 0; i < SIZE; i++) {
+        int aparece[SIZE] = {0};
+        for (int j = 0; j < SIZE; j++) {
+            int val = sudoku[i][j];
+            if (val < 1 || val > 9) {
+                erros[i][j] = 1;
+                erro = 1;
+            } else if (aparece[val - 1]) {
+                for (int k = 0; k < SIZE; k++) {
+                    if (sudoku[i][k] == val)
+                        erros[i][k] = 1;
+                }
+                erro = 1;
+            } else {
+                aparece[val - 1] = 1;
+            }
+        }
+    }
+
+    // Verifica colunas
+    for (int j = 0; j < SIZE; j++) {
+        int aparece[SIZE] = {0};
+        for (int i = 0; i < SIZE; i++) {
+            int val = sudoku[i][j];
+            if (val < 1 || val > 9) {
+                erros[i][j] = 1;
+                erro = 1;
+            } else if (aparece[val - 1]) {
+                for (int k = 0; k < SIZE; k++) {
+                    if (sudoku[k][j] == val)
+                        erros[k][j] = 1;
+                }
+                erro = 1;
+            } else {
+                aparece[val - 1] = 1;
+            }
+        }
+    }
+
+    // Verifica quadrantes
+    for (int bloco_i = 0; bloco_i < SIZE; bloco_i += 3) {
+        for (int bloco_j = 0; bloco_j < SIZE; bloco_j += 3) {
+            int aparece[SIZE] = {0};
+            int posicoes[SIZE][2]; // guarda posições duplicadas
+            int dup = 0;
+
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    int linha = bloco_i + i;
+                    int coluna = bloco_j + j;
+                    int val = sudoku[linha][coluna];
+
+                    if (val < 1 || val > 9) {
+                        erros[linha][coluna] = 1;
+                        erro = 1;
+                    } else if (aparece[val - 1]) {
+                        // marca todo mundo com esse valor nesse bloco
+                        for (int a = 0; a < 3; a++) {
+                            for (int b = 0; b < 3; b++) {
+                                int li = bloco_i + a;
+                                int co = bloco_j + b;
+                                if (sudoku[li][co] == val) {
+                                    erros[li][co] = 1;
+                                }
+                            }
+                        }
+                        erro = 1;
+                    } else {
+                        aparece[val - 1] = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    if(!erro) printf("\nExecucao 9: Essa configuracao do tabuleiro eh valida!\n");
+    else printf("\nExecucao 9: Essa configuracao do tabuleiro eh invalida!\n");
+
+    // Imprime o Sudoku com destaque
+    printf("\nSudoku analisado (X marca erros):\n\n");
+    for (int i = 0; i < SIZE; i++) {
+        if (i % 3 == 0 && i != 0)
+            printf("---------------------\n");
+
+        for (int j = 0; j < SIZE; j++) {
+            if (j % 3 == 0 && j != 0)
+                printf("| ");
+
+            if (erros[i][j])
+                printf("X ");
+            else
+                printf("%d ", sudoku[i][j]);
+        }
+        printf("\n");
+    }
+
+    if (erro)
+        printf("\nErros identificados no Sudoku (marcados com X).\n");
+}
+
+
 void *linhaValida(void* parametros){
     
     params *parameters = (params *)parametros;
@@ -79,9 +189,9 @@ void *linhaValida(void* parametros){
 
         results[ inicio_linhas + parameters->row ] = 1;
         
-        //free(parameters);
     }
 
+    free(parameters);
     pthread_exit(NULL); // fim do processo
 }
 
@@ -111,13 +221,14 @@ void *colunaValida(void* parametros){
                 apareceApenasUmaVezNaColuna[numeroEmVerificacao - 1] = 1;
             }
         }
+
         
         results[inicio_colunas + parameters->column] = 1;
 
-        //free(parameters);
     }
 
-    pthread_exit(NULL); // fim do processo
+    free(parameters);
+    pthread_exit(NULL); // fim da thread
 }
 
 void *quadranteValido(void* parametros){
@@ -154,10 +265,10 @@ void *quadranteValido(void* parametros){
             
             results[parameters->row + (parameters->column)/3] = 1;
 
-            //free(parameters);
         
         }
     }
 
+    free(parameters);
     pthread_exit(NULL); // fim do processo
 }
