@@ -16,7 +16,9 @@ To do list:
 
 - Revisar otimizações de memória
 
-- Revisar modularização (utils.c com funções de print e leitura, createThreads.c com criação de threads) e utilização de macros
+- Revisar modularização (utils.c com funções de print e leitura, createThreads.c com criação de threads)✅
+
+- Revisar utilização de macros
 
 Bônus:
 - Implementar um leitor de várias instâncias diferentes de um tabuleiro simultaneamente
